@@ -1,0 +1,164 @@
+.add-main {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding-bottom: 2rem;
+}
+
+.form-container {
+  width: 80%;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.21);
+  border-radius: 12px;
+}
+
+h2 {
+  text-align: center;
+  color: #023047;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.message {
+  text-align: center;
+  color: red;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #34495e;
+  font-size: 1.1rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="url"],
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="date"]:focus,
+input[type="url"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+textarea {
+  height: 120px;
+  resize: vertical;
+}
+
+.author-input,
+.keyword-input {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.author-input input,
+.keyword-input input {
+  flex: 1;
+  margin-right: 0.75rem;
+}
+
+button {
+  background-color: #023047;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  background-color: #28a745;
+  margin-top: 1rem;
+}
+
+.submit-btn:hover {
+  background-color: #218838;
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    width: 90%;
+    padding: 1.5rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  input[type="url"],
+  textarea {
+    font-size: 0.9rem;
+  }
+
+  button {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .submit-btn {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-container {
+    width: 95%;
+    padding: 1rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  .author-input,
+  .keyword-input {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .author-input input,
+  .keyword-input input {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+}
