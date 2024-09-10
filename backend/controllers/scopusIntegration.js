@@ -50,17 +50,17 @@ async function fetchDetailedPublicationData(entry, user) {
 
   try {
     // Fetch basic data
-    const basicDataUrl = `${baseUrl}${eid}?field=dc:description,eid`;
+    const basicDataUrl = `${baseUrl}${eid}?field=dc:description&view=FULL`;
     const basicDataResponse = await axios.get(basicDataUrl, { headers });
     const basicData = basicDataResponse.data["abstracts-retrieval-response"];
 
     // Fetch author data
-    const authorDataUrl = `${baseUrl}${eid}?field=authors`;
+    const authorDataUrl = `${baseUrl}${eid}?field=authors&view=FULL`;
     const authorDataResponse = await axios.get(authorDataUrl, { headers });
     const authorData = authorDataResponse.data["abstracts-retrieval-response"];
 
     // Fetch keyword data
-    const keywordDataUrl = `${baseUrl}${eid}?field=authkeywords`;
+    const keywordDataUrl = `${baseUrl}${eid}?field=authkeywords&view=FULL`;
     const keywordDataResponse = await axios.get(keywordDataUrl, { headers });
     const keywordData = keywordDataResponse.data["abstracts-retrieval-response"];
 
