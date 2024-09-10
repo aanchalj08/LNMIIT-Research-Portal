@@ -46,22 +46,21 @@ async function fetchDetailedPublicationData(entry, user) {
   const fullEid = entry.eid;
   const eid = fullEid.split('-').pop();
   const baseUrl = "https://api.elsevier.com/content/abstract/scopus_id/";
-  const headers = { "X-ELS-APIKey": SCOPUS_API_KEY };
 
   try {
     // Fetch basic data
-    const basicDataUrl = `${baseUrl}${eid}?field=dc:description&view=FULL`;
-    const basicDataResponse = await axios.get(basicDataUrl, { headers });
+    const basicDataUrl = `${baseUrl}${eid}?field=dc:description&view=FULL&apiKey=${SCOPUS_API_KEY}`;
+    const basicDataResponse = await axios.get(basicDataUrl);
     const basicData = basicDataResponse.data["abstracts-retrieval-response"];
 
     // Fetch author data
-    const authorDataUrl = `${baseUrl}${eid}?field=authors&view=FULL`;
-    const authorDataResponse = await axios.get(authorDataUrl, { headers });
+    const authorDataUrl = `${baseUrl}${eid}?field=authors&view=FULL&apiKey=${SCOPUS_API_KEY}`;
+    const authorDataResponse = await axios.get(authorDataUrl);
     const authorData = authorDataResponse.data["abstracts-retrieval-response"];
 
     // Fetch keyword data
-    const keywordDataUrl = `${baseUrl}${eid}?field=authkeywords&view=FULL`;
-    const keywordDataResponse = await axios.get(keywordDataUrl, { headers });
+    const keywordDataUrl = `${baseUrl}${eid}?field=authkeywords&view=FULL&apiKey=${SCOPUS_API_KEY}`;
+    const keywordDataResponse = await axios.get(keywordDataUrl);
     const keywordData = keywordDataResponse.data["abstracts-retrieval-response"];
 
     return {
