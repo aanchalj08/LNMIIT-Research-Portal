@@ -8,9 +8,16 @@ async function fetchAndSavePublications(user, authorID) {
   while (startIndex < totalResults) {
     const searchUrl = `https://api.elsevier.com/content/search/scopus?query=AU-ID(${authorID})&start=${startIndex}&count=25`;
     try {
+      console.log(`Making search request to: ${searchUrl}`);
       const searchResponse = await axios.get(searchUrl, {
         headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
       });
+      console.log("Abstract API Response Status:", abstractResponse.status);
+      console.log(
+        "Abstract API Response Headers:",
+        JSON.stringify(abstractResponse.headers, null, 2)
+      );
+
       const searchData = searchResponse.data["search-results"];
       totalResults = parseInt(searchData["opensearch:totalResults"]);
       for (const entry of searchData.entry) {
@@ -60,11 +67,21 @@ async function fetchAndSavePublications(user, authorID) {
 async function validateAuthorID(authorID) {
   const searchUrl = `https://api.elsevier.com/content/search/scopus?query=AU-ID(${authorID})&count=1`;
   try {
+    console.log(`Making search request to: ${searchUrl}`);
     const searchResponse = await axios.get(searchUrl, {
       headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
     });
+
+    console.log("Search API Response Status:", searchResponse.status);
+    console.log(
+      "Search API Response Headers:",
+      JSON.stringify(searchResponse.headers, null, 2)
+    );
+
     const searchData = searchResponse.data["search-results"];
     const totalResults = parseInt(searchData["opensearch:totalResults"]);
+    console.log(`Total results: ${totalResults}`);
+
     return totalResults > 0;
   } catch (error) {
     console.error("Error validating Author ID:", error);
