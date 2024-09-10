@@ -13,42 +13,12 @@ async function fetchAndSavePublications(user, authorID) {
         headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
       });
       console.log("Search API Response Status:", searchResponse.status);
-      console.log("Search API Response Headers:", JSON.stringify(searchResponse.headers, null, 2));
       
       const searchData = searchResponse.data["search-results"];
-      console.log("Search Data Structure:", JSON.stringify(searchData, null, 2));
-      
       totalResults = parseInt(searchData["opensearch:totalResults"]);
+      
       for (const entry of searchData.entry) {
-        const abstractUrl = `${entry["prism:url"]}?field=author,affiliation,authkeywords,dc:description,eid`;
-        console.log(`Making abstract request to: ${abstractUrl}`);
-        const abstractResponse = await axios.get(abstractUrl, {
-          headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
-        });
-        console.log("Abstract API Response Status:", abstractResponse.status);
-        console.log("Abstract API Response Headers:", JSON.stringify(abstractResponse.headers, null, 2));
-        
-        const abstractData = abstractResponse.data["abstracts-retrieval-response"];
-        console.log("Abstract Data Structure:", JSON.stringify(abstractData, null, 2));
-        
-        const publicationData = {
-          user: user._id,
-          name: user.name,
-          email: user.email,
-          issnNumber: entry["prism:issn"],
-          title: entry["dc:title"],
-          journalTitle: entry["prism:publicationName"],
-          publicationDate: new Date(entry["prism:coverDate"]),
-          pageNumbers: entry["prism:pageRange"],
-          citationCount: parseInt(entry["citedby-count"]),
-          paperLink: `https://www.scopus.com/record/display.uri?eid=${entry.eid}&origin=resultslist`,
-          description: abstractData?.coredata?.["dc:description"] || "",
-          authors: abstractData.authors?.author?.map(
-            (author) => author["ce:given-name"] + " " + author["ce:surname"]
-          ) || [],
-          keywords: parseKeywords(abstractData.authkeywords),
-          eid: entry.eid,
-        };
+        const publicationData = await fetchDetailedPublicationData(entry, user);
         console.log("Publication Data:", JSON.stringify(publicationData, null, 2));
         
         try {
@@ -71,41 +41,90 @@ async function fetchAndSavePublications(user, authorID) {
   }
 }
 
-async function validateAuthorID(authorID) {
-  const searchUrl = `https://api.elsevier.com/content/search/scopus?query=AU-ID(${authorID})&count=1`;
+async function fetchDetailedPublicationData(entry, user) {
+  const eid = entry.eid;
+  const baseUrl = "https://api.elsevier.com/content/abstract/scopus_id/";
+  const headers = { "X-ELS-APIKey": SCOPUS_API_KEY };
+
   try {
-    console.log(`Making search request to: ${searchUrl}`);
-    const searchResponse = await axios.get(searchUrl, {
-      headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
-    });
+    // Fetch basic data
+    const basicDataUrl = `${baseUrl}${eid}?field=dc:description,eid`;
+    const basicDataResponse = await axios.get(basicDataUrl, { headers });
+    const basicData = basicDataResponse.data["abstracts-retrieval-response"];
 
-    console.log("Search API Response Status:", searchResponse.status);
-    console.log(
-      "Search API Response Headers:",
-      JSON.stringify(searchResponse.headers, null, 2)
-    );
+    // Fetch author data
+    const authorDataUrl = `${baseUrl}${eid}?field=authors`;
+    const authorDataResponse = await axios.get(authorDataUrl, { headers });
+    const authorData = authorDataResponse.data["abstracts-retrieval-response"];
 
-    const searchData = searchResponse.data["search-results"];
-    const totalResults = parseInt(searchData["opensearch:totalResults"]);
-    console.log(`Total results: ${totalResults}`);
+    // Fetch keyword data
+    const keywordDataUrl = `${baseUrl}${eid}?field=authkeywords`;
+    const keywordDataResponse = await axios.get(keywordDataUrl, { headers });
+    const keywordData = keywordDataResponse.data["abstracts-retrieval-response"];
 
-    return totalResults > 0;
+    return {
+      user: user._id,
+      name: user.name,
+      email: user.email,
+      issnNumber: entry["prism:issn"] || "",
+      title: entry["dc:title"] || "",
+      journalTitle: entry["prism:publicationName"] || "",
+      publicationDate: entry["prism:coverDate"] ? new Date(entry["prism:coverDate"]) : null,
+      pageNumbers: entry["prism:pageRange"] || "",
+      citationCount: entry["citedby-count"] ? parseInt(entry["citedby-count"]) : 0,
+      paperLink: `https://www.scopus.com/record/display.uri?eid=${eid}&origin=resultslist`,
+      description: basicData?.coredata?.["dc:description"] || "",
+      authors: parseAuthors(authorData?.authors?.author),
+      keywords: parseKeywords(keywordData?.authkeywords),
+      eid: eid,
+    };
   } catch (error) {
-    console.error("Error validating Author ID:", error);
-    return false;
+    console.error(`Error fetching detailed data for EID ${eid}:`, error);
+    return {
+      user: user._id,
+      name: user.name,
+      email: user.email,
+      eid: eid,
+      // Include other fields from the entry object as needed
+    };
   }
+}
+
+function parseAuthors(authors) {
+  if (!authors) return [];
+  if (Array.isArray(authors)) {
+    return authors.map(author => `${author["ce:given-name"] || ""} ${author["ce:surname"] || ""}`.trim());
+  } else if (typeof authors === "object") {
+    return [`${authors["ce:given-name"] || ""} ${authors["ce:surname"] || ""}`.trim()];
+  }
+  return [];
 }
 
 function parseKeywords(authkeywords) {
   if (!authkeywords) return [];
   if (Array.isArray(authkeywords["author-keyword"])) {
-    return authkeywords["author-keyword"].map((keyword) => keyword["$"]);
+    return authkeywords["author-keyword"].map((keyword) => keyword["$"] || keyword);
   } else if (typeof authkeywords["author-keyword"] === "object") {
-    return [authkeywords["author-keyword"]["$"]];
+    return [authkeywords["author-keyword"]["$"] || ""];
   } else if (typeof authkeywords["author-keyword"] === "string") {
     return [authkeywords["author-keyword"]];
   }
   return [];
+}
+
+async function validateAuthorID(authorID) {
+  const searchUrl = `https://api.elsevier.com/content/search/scopus?query=AU-ID(${authorID})&count=1`;
+  try {
+    const searchResponse = await axios.get(searchUrl, {
+      headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
+    });
+    const searchData = searchResponse.data["search-results"];
+    const totalResults = parseInt(searchData["opensearch:totalResults"]);
+    return totalResults > 0;
+  } catch (error) {
+    console.error("Error validating Author ID:", error);
+    return false;
+  }
 }
 
 module.exports = { fetchAndSavePublications, validateAuthorID };
