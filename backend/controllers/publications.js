@@ -5,6 +5,8 @@ const natural = require("natural");
 const tokenizer = new natural.WordTokenizer();
 const TfIdf = natural.TfIdf;
 const stemmer = natural.PorterStemmer;
+const SCOPUS_API_KEY = process.env.SCOPUS_API_KEY;
+
 
 exports.verifyPublication = async (req, res) => {
   const { issnNumber } = req.body;
@@ -14,7 +16,7 @@ exports.verifyPublication = async (req, res) => {
       `https://api.elsevier.com/content/serial/title/issn/${issnNumber}`,
       {
         headers: {
-          "X-ELS-APIKey": "8050a60fc6e16a778dff7f8dd9c6e8a0",
+          "X-ELS-APIKey": SCOPUS_API_KEY,
         },
       }
     );
