@@ -12,11 +12,7 @@ async function fetchAndSavePublications(user, authorID) {
       const searchResponse = await axios.get(searchUrl, {
         headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
       });
-      console.log("Abstract API Response Status:", abstractResponse.status);
-      console.log(
-        "Abstract API Response Headers:",
-        JSON.stringify(abstractResponse.headers, null, 2)
-      );
+     
 
       const searchData = searchResponse.data["search-results"];
       totalResults = parseInt(searchData["opensearch:totalResults"]);
