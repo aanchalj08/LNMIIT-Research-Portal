@@ -9,6 +9,7 @@ async function fetchAndSavePublications(user, authorID) {
     const searchUrl = `https://api.elsevier.com/content/search/scopus?query=AU-ID(${authorID})&start=${startIndex}&count=25`;
     try {
       console.log(`Making search request to: ${searchUrl}`);
+      console.log("Hi");
       const searchResponse = await axios.get(searchUrl, {
         headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
       });
