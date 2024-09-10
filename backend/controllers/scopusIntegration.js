@@ -12,18 +12,25 @@ async function fetchAndSavePublications(user, authorID) {
       const searchResponse = await axios.get(searchUrl, {
         headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
       });
-     
-
+      console.log("Search API Response Status:", searchResponse.status);
+      console.log("Search API Response Headers:", JSON.stringify(searchResponse.headers, null, 2));
+      
       const searchData = searchResponse.data["search-results"];
+      console.log("Search Data Structure:", JSON.stringify(searchData, null, 2));
+      
       totalResults = parseInt(searchData["opensearch:totalResults"]);
       for (const entry of searchData.entry) {
         const abstractUrl = `${entry["prism:url"]}?field=author,affiliation,authkeywords,dc:description,eid`;
+        console.log(`Making abstract request to: ${abstractUrl}`);
         const abstractResponse = await axios.get(abstractUrl, {
           headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
         });
-        const abstractData =
-          abstractResponse.data["abstracts-retrieval-response"];
-        console.log(abstractData);
+        console.log("Abstract API Response Status:", abstractResponse.status);
+        console.log("Abstract API Response Headers:", JSON.stringify(abstractResponse.headers, null, 2));
+        
+        const abstractData = abstractResponse.data["abstracts-retrieval-response"];
+        console.log("Abstract Data Structure:", JSON.stringify(abstractData, null, 2));
+        
         const publicationData = {
           user: user._id,
           name: user.name,
@@ -36,20 +43,21 @@ async function fetchAndSavePublications(user, authorID) {
           citationCount: parseInt(entry["citedby-count"]),
           paperLink: `https://www.scopus.com/record/display.uri?eid=${entry.eid}&origin=resultslist`,
           description: abstractData?.coredata?.["dc:description"] || "",
-          authors:
-            abstractData.authors?.author?.map(
-              (author) => author["ce:given-name"] + " " + author["ce:surname"]
-            ) || [],
+          authors: abstractData.authors?.author?.map(
+            (author) => author["ce:given-name"] + " " + author["ce:surname"]
+          ) || [],
           keywords: parseKeywords(abstractData.authkeywords),
           eid: entry.eid,
         };
-        console.log(publicationData);
+        console.log("Publication Data:", JSON.stringify(publicationData, null, 2));
+        
         try {
-          await Publication.findOneAndUpdate(
+          const result = await Publication.findOneAndUpdate(
             { eid: publicationData.eid },
             publicationData,
             { upsert: true, new: true, setDefaultsOnInsert: true }
           );
+          console.log("Saved/Updated Publication:", JSON.stringify(result, null, 2));
         } catch (error) {
           console.error("Error updating/inserting publication:", error);
         }
@@ -57,6 +65,7 @@ async function fetchAndSavePublications(user, authorID) {
       startIndex += 25;
     } catch (error) {
       console.error("Error fetching publications:", error);
+      console.error("Error details:", error.response ? error.response.data : error.message);
       break;
     }
   }
