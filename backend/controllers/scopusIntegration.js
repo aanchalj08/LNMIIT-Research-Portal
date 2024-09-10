@@ -23,6 +23,7 @@ async function fetchAndSavePublications(user, authorID) {
         });
         const abstractData =
           abstractResponse.data["abstracts-retrieval-response"];
+        console.log(abstractData);
         const publicationData = {
           user: user._id,
           name: user.name,
@@ -42,6 +43,7 @@ async function fetchAndSavePublications(user, authorID) {
           keywords: parseKeywords(abstractData.authkeywords),
           eid: entry.eid,
         };
+        console.log(publicationData);
         try {
           await Publication.findOneAndUpdate(
             { eid: publicationData.eid },
