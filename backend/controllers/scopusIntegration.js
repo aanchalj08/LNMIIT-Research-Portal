@@ -43,7 +43,8 @@ async function fetchAndSavePublications(user, authorID) {
 }
 
 async function fetchDetailedPublicationData(entry, user) {
-  const eid = entry.eid;
+  const fullEid = entry.eid;
+  const eid = fullEid.split('-').pop();
   const baseUrl = "https://api.elsevier.com/content/abstract/scopus_id/";
   const headers = { "X-ELS-APIKey": SCOPUS_API_KEY };
 
@@ -77,7 +78,7 @@ async function fetchDetailedPublicationData(entry, user) {
       description: basicData?.coredata?.["dc:description"] || "",
       authors: parseAuthors(authorData?.authors?.author),
       keywords: parseKeywords(keywordData?.authkeywords),
-      eid: eid,
+      eid: fullEid,
     };
   } catch (error) {
     console.error(`Error fetching detailed data for EID ${eid}:`, error);
@@ -85,7 +86,7 @@ async function fetchDetailedPublicationData(entry, user) {
       user: user._id,
       name: user.name,
       email: user.email,
-      eid: eid,
+      eid: fullEid,
       // Include other fields from the entry object as needed
     };
   }
