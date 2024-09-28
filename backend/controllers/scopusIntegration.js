@@ -1,6 +1,7 @@
 const axios = require("axios");
 const Publication = require("../models/Publication");
 const SCOPUS_API_KEY = process.env.SCOPUS_API_KEY;
+const SCOPUS_INST_TOKEN = process.env.SCOPUS_INST_TOKEN;
 
 async function fetchAndSavePublications(user, authorID) {
   let startIndex = 0;
@@ -11,7 +12,9 @@ async function fetchAndSavePublications(user, authorID) {
       console.log(`Making search request to: ${searchUrl}`);
       console.log("Hi");
       const searchResponse = await axios.get(searchUrl, {
-        headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
+        headers: { "X-ELS-APIKey": SCOPUS_API_KEY,
+                   "X-ELS-Insttoken": SCOPUS_INST_TOKEN,
+                 },
       });
       console.log("Search API Response Status:", searchResponse.status);
       
@@ -49,17 +52,17 @@ async function fetchDetailedPublicationData(entry, user) {
 
   try {
     // Fetch basic data
-    const basicDataUrl = `${baseUrl}${eid}?field=dc:description&view=FULL&apiKey=${SCOPUS_API_KEY}`;
+    const basicDataUrl = `${baseUrl}${eid}?field=dc:description&view=FULL&apiKey=${SCOPUS_API_KEY}&insttoken=${SCOPUS_INST_TOKEN}`;
     const basicDataResponse = await axios.get(basicDataUrl);
     const basicData = basicDataResponse.data["abstracts-retrieval-response"];
 
     // Fetch author data
-    const authorDataUrl = `${baseUrl}${eid}?field=authors&view=FULL&apiKey=${SCOPUS_API_KEY}`;
+    const authorDataUrl = `${baseUrl}${eid}?field=authors&view=FULL&apiKey=${SCOPUS_API_KEY}&insttoken=${SCOPUS_INST_TOKEN}`;
     const authorDataResponse = await axios.get(authorDataUrl);
     const authorData = authorDataResponse.data["abstracts-retrieval-response"];
 
     // Fetch keyword data
-    const keywordDataUrl = `${baseUrl}${eid}?field=authkeywords&view=FULL&apiKey=${SCOPUS_API_KEY}`;
+    const keywordDataUrl = `${baseUrl}${eid}?field=authkeywords&view=FULL&apiKey=${SCOPUS_API_KEY}&insttoken=${SCOPUS_INST_TOKEN}`;
     const keywordDataResponse = await axios.get(keywordDataUrl);
     const keywordData = keywordDataResponse.data["abstracts-retrieval-response"];
 
@@ -117,7 +120,9 @@ async function validateAuthorID(authorID) {
   const searchUrl = `https://api.elsevier.com/content/search/scopus?query=AU-ID(${authorID})&count=1`;
   try {
     const searchResponse = await axios.get(searchUrl, {
-      headers: { "X-ELS-APIKey": SCOPUS_API_KEY },
+      headers: { "X-ELS-APIKey": SCOPUS_API_KEY,
+                 "X-ELS-Insttoken": SCOPUS_INST_TOKEN,
+               },
     });
     const searchData = searchResponse.data["search-results"];
     const totalResults = parseInt(searchData["opensearch:totalResults"]);
