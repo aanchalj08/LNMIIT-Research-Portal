@@ -1,35 +1,41 @@
-const mongoose = require("mongoose");
+const { sequelize } = require("../db/connect");
+const { DataTypes } = require("sequelize");
 
-const PublicationSchema = new mongoose.Schema(
+const Publication = sequelize.define(
+  "Publication",
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "Teacher",
+        key: "id",
+      },
     },
-    name: String,
-    email: String,
-    issnNumber: String,
-    authors: [String],
-    title: String,
-    journalTitle: String,
-    publicationDate: Date,
-    pageNumbers: String,
-    citationCount: String,
-    keywords: [String],
-    paperLink: String,
-    description: String,
+    name: DataTypes.STRING,
+    email: DataTypes.STRING,
+    issnNumber: DataTypes.STRING,
+    authors: DataTypes.JSON,
+    title: DataTypes.STRING,
+    journalTitle: DataTypes.STRING,
+    publicationDate: DataTypes.DATE,
+    pageNumbers: DataTypes.STRING,
+    citationCount: DataTypes.INTEGER,
+    keywords: DataTypes.JSON,
+    paperLink: DataTypes.STRING,
+    description: DataTypes.TEXT,
     eid: {
-      type: String,
+      type: DataTypes.STRING,
       unique: true,
     },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Teacher",
-      required: true,
-    },
   },
-  { timestamps: true }
+  {
+    tableName: "Publication",
+  }
 );
 
-module.exports = mongoose.model("Publication", PublicationSchema);
+Publication.associate = (models) => {
+  Publication.belongsTo(models.Teacher, { foreignKey: "user_id" });
+};
+
+module.exports = { Publication };

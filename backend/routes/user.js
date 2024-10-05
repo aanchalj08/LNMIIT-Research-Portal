@@ -9,13 +9,11 @@ const {
   forgotPassword,
   resetPassword,
   refreshPublications,
+  studentlogin,
+  studentregister,
 } = require("../controllers/user");
+const { getAllDomains, addDomain } = require("../controllers/domains");
 
-const {
-  saveItinerary,
-  getUserItineraries,
-  getItineraryById,
-} = require("../controllers/itinerary");
 const {
   verifyPublication,
   addPublication,
@@ -36,11 +34,6 @@ router.route("/login").post(login);
 router.route("/register").post(register);
 router.route("/dashboard").get(authMiddleware, dashboard);
 router.route("/users").get(getAllUsers);
-router.route("/itinerary/save-itinerary").post(authMiddleware, saveItinerary);
-router
-  .route("/itinerary/user-itineraries")
-  .get(authMiddleware, getUserItineraries);
-router.route("/itinerary/:id").get(authMiddleware, getItineraryById);
 router.route("/verify-publication").post(verifyPublication);
 router.route("/add-publication").post(authMiddleware, addPublication);
 router.route("/get-publications").get(authMiddleware, getUserPublications);
@@ -52,6 +45,9 @@ router.route("/search-users").get(authMiddleware, searchPublication);
 router.route("/user-publications/:userId").get(authMiddleware, getPublications);
 router.route("/refresh-publications").post(authMiddleware, refreshPublications);
 router.route("/teacher/profile").get(authMiddleware, getUserData);
-router.route("/teacherprofile").put(authMiddleware, updateUserData);
-
+router.route("/teacher/profile").put(authMiddleware, updateUserData);
+router.route("/student-login").post(studentlogin);
+router.route("/student-register").post(studentregister);
+router.route("domains").get(getAllDomains);
+router.route("domains").post(authMiddleware, addDomain);
 module.exports = router;

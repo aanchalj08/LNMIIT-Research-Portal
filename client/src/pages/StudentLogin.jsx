@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const Login = () => {
+const StudentLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [token, setToken] = useState(
     JSON.parse(localStorage.getItem("auth")) || ""
@@ -24,10 +24,13 @@ const Login = () => {
     if (email.length > 0 && password.length > 0) {
       const formData = { email, password };
       try {
-        const response = await axios.post(`${baseUrl}/api/v1/login`, formData);
+        const response = await axios.post(
+          `${baseUrl}/api/v1/student-login`,
+          formData
+        );
         localStorage.setItem("auth", JSON.stringify(response.data.token));
         toast.success("Login successful");
-        navigate("/dashboard?userType=teacher");
+        navigate("/dashboard?userType=student");
       } catch (err) {
         toast.error(
           err.response?.data?.msg || "Login failed. Please try again."
@@ -44,7 +47,7 @@ const Login = () => {
   useEffect(() => {
     if (token !== "") {
       toast.success("You are already logged in");
-      navigate("/dashboard?userType=teacher");
+      navigate("/dashboard?userType=student");
     }
   }, [token, navigate]);
 
@@ -104,7 +107,7 @@ const Login = () => {
             </form>
           </div>
           <p className="login-bottom-p">
-            Don't have an account? <Link to="/register">Sign Up</Link>
+            Don't have an account? <Link to="/student/register">Sign Up</Link>
           </p>
         </div>
       </div>
@@ -112,4 +115,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default StudentLogin;

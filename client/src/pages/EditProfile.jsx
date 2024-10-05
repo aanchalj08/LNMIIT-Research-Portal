@@ -7,7 +7,6 @@ import "../styles/EditProfile.css";
 const EditProfile = () => {
   const [userData, setUserData] = useState({
     name: "",
-    email: "",
     department: "",
     authorID: "",
     domains: [],
@@ -15,11 +14,66 @@ const EditProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [domainOptions, setDomainOptions] = useState([]);
+  const [newDomain, setNewDomain] = useState("");
+  const [selectedDomain, setSelectedDomain] = useState("");
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
     fetchUserData();
+    fetchDomains();
   }, []);
+
+  const fetchDomains = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}/api/v1/domains`);
+      const domains = response.data;
+      setDomainOptions(
+        domains.map((domain) => ({ value: domain.name, label: domain.name }))
+      );
+    } catch (error) {
+      console.error("Error fetching domains:", error);
+      setError("Failed to fetch domains. Please try again.");
+    }
+  };
+
+  const handleAddNewDomain = async () => {
+    if (!newDomain) return;
+
+    try {
+      const token = JSON.parse(localStorage.getItem("auth"));
+      await axios.post(
+        `${baseUrl}/api/v1/domains`,
+        { name: newDomain },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setUserData((prevData) => ({
+        ...prevData,
+        domains: [...prevData.domains, newDomain],
+      }));
+      setNewDomain("");
+      fetchDomains();
+    } catch (error) {
+      console.error("Error adding new domain:", error);
+      setError("Failed to add new domain. Please try again.");
+    }
+  };
+
+  const handleAddExistingDomain = () => {
+    if (!selectedDomain) return;
+    if (!userData.domains.includes(selectedDomain)) {
+      setUserData((prevData) => ({
+        ...prevData,
+        domains: [...prevData.domains, selectedDomain],
+      }));
+    }
+    setSelectedDomain("");
+  };
 
   const fetchUserData = async () => {
     try {
@@ -30,8 +84,6 @@ const EditProfile = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(response);
-
       const data = await response.data;
       setUserData(data);
     } catch (err) {
@@ -48,22 +100,6 @@ const EditProfile = () => {
     }));
   };
 
-  const handleDomainChange = (e, index) => {
-    const newDomains = [...userData.domains];
-    newDomains[index] = e.target.value;
-    setUserData((prevData) => ({
-      ...prevData,
-      domains: newDomains,
-    }));
-  };
-
-  const addDomain = () => {
-    setUserData((prevData) => ({
-      ...prevData,
-      domains: [...prevData.domains, ""],
-    }));
-  };
-
   const removeDomain = (index) => {
     setUserData((prevData) => ({
       ...prevData,
@@ -73,7 +109,7 @@ const EditProfile = () => {
 
   const handleEdit = () => {
     setIsEditing(true);
-    setMessage(""); // Clear any previous messages
+    setMessage("");
   };
 
   const handleSubmit = async (e) => {
@@ -85,7 +121,6 @@ const EditProfile = () => {
 
     setError("");
     setMessage("");
-    console.log(userData);
 
     try {
       const token = JSON.parse(localStorage.getItem("auth"));
@@ -123,18 +158,6 @@ const EditProfile = () => {
               id="name"
               name="name"
               value={userData.name}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="email">Email:</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={userData.email}
               onChange={handleInputChange}
               disabled={!isEditing}
               required
@@ -185,77 +208,57 @@ const EditProfile = () => {
             <label>Domains:</label>
             {userData.domains.map((domain, index) => (
               <div key={index} className="domain-input">
-                {isEditing ? (
-                  <select
-                    value={domain}
-                    onChange={(e) => handleDomainChange(e, index)}
-                    className="domain-box"
-                    required
-                  >
-                    <option value="">Select Domain</option>
-                    <option value="AI/ML">AI/ML</option>
-                    <option value="Cyber Security">Cyber Security</option>
-                    <option value="Cloud Computing">Cloud Computing</option>
-                    <option value="Deep Learning">Deep Learning</option>
-                    <option value="Data Science & Big Data">
-                      Data Science & Big Data
-                    </option>
-                    <option value="Computer Networks & Distributed Systems">
-                      Computer Networks & Distributed Systems
-                    </option>
-                    <option value="Software Engineering">
-                      Software Engineering
-                    </option>
-                    <option value="Natural Language Processing">
-                      Natural Language Processing
-                    </option>
-                    <option value="Research">Research</option>
-                    <option value="Internet of Things">
-                      Internet of Things
-                    </option>
-                    <option value="Wireless Communication">
-                      Wireless Communication
-                    </option>
-                    <option value="Robotics">Robotics</option>
-                    <option value="Development">Development</option>
-                    <option value="Blockchain Technology">
-                      Blockchain Technology
-                    </option>
-                    <option value="Bioinformatics">Bioinformatics</option>
-                    <option value="Environmental Engineering">
-                      Environmental Engineering
-                    </option>
-                    <option value="Human-Computer Interaction (HCI)">
-                      Human-Computer Interaction (HCI)
-                    </option>
-                    <option value="Networking & Telecommunications">
-                      Networking & Telecommunications
-                    </option>
-                    <option value="Embedded Systems">Embedded Systems</option>
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    value={domain}
-                    disabled={!isEditing}
-                    required
-                  />
-                )}
+                <input type="text" value={domain} disabled={true} required />
                 {isEditing && (
                   <button
                     type="button"
                     onClick={() => removeDomain(index)}
                     className="remove-domain"
                   >
-                    <XCircle className="x-circle" size={20} />
+                    <XCircle className="x-circle" size={16} />
                   </button>
                 )}
               </div>
             ))}
             {isEditing && (
-              <button type="button" onClick={addDomain} className="add-domain">
-                <PlusCircle size={20} /> Add Domain
-              </button>
+              <>
+                <div className="add-domain-container">
+                  <select
+                    value={selectedDomain}
+                    onChange={(e) => setSelectedDomain(e.target.value)}
+                    className="domain-box"
+                  >
+                    <option value="">Select Existing Domain</option>
+                    {domainOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleAddExistingDomain}
+                    className="add-domain"
+                  >
+                    <PlusCircle size={20} /> Add Domain
+                  </button>
+                </div>
+                <div className="add-domain-container">
+                  <input
+                    type="text"
+                    value={newDomain}
+                    onChange={(e) => setNewDomain(e.target.value)}
+                    placeholder="Enter new domain"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddNewDomain}
+                    className="add-domain"
+                  >
+                    <PlusCircle size={20} /> Add New Domain
+                  </button>
+                </div>
+              </>
             )}
           </div>
           <button

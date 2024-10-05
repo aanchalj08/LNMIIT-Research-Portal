@@ -3,10 +3,10 @@ import "../styles/AddPublication.css";
 import Navbar from "./Navbar";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaPlus, FaMinus } from "react-icons/fa";
 
 const AddPublication = () => {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [issnNumber, setIssnNumber] = useState("");
   const [authors, setAuthors] = useState([""]);
   const [title, setTitle] = useState("");
@@ -53,7 +53,6 @@ const AddPublication = () => {
 
   const clearForm = () => {
     setName("");
-    setEmail("");
     setIssnNumber("");
     setAuthors([""]);
     setTitle("");
@@ -77,19 +76,21 @@ const AddPublication = () => {
         headers: { Authorization: `Bearer ${token}` },
       };
 
+      const authorsJson = JSON.stringify(authors);
+      const keywordsJson = JSON.stringify(keywords);
+
       const submissionResponse = await axios.post(
         `${baseUrl}/api/v1/add-publication`,
         {
           name,
-          email,
           issnNumber,
-          authors,
+          authors: authorsJson,
           title,
           journalTitle,
           publicationDate,
           citationCount,
           pageNumbers,
-          keywords,
+          keywords: keywordsJson,
           paperLink,
           description,
         },
@@ -113,8 +114,9 @@ const AddPublication = () => {
         <h2>Add Publication</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Name:</label>
+            <label htmlFor="name">Name:</label>
             <input
+              id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -122,17 +124,9 @@ const AddPublication = () => {
             />
           </div>
           <div className="form-group">
-            <label>Email:</label>
+            <label htmlFor="issnNumber">ISSN Number:</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>ISSN Number:</label>
-            <input
+              id="issnNumber"
               type="text"
               value={issnNumber}
               onChange={(e) => setIssnNumber(e.target.value)}
@@ -151,20 +145,26 @@ const AddPublication = () => {
                 {authors.length > 1 && (
                   <button
                     type="button"
+                    className="icon-button remove"
                     onClick={() => handleRemoveAuthor(index)}
                   >
-                    Remove
+                    <FaMinus />
                   </button>
                 )}
               </div>
             ))}
-            <button type="button" onClick={handleAddAuthor}>
-              Add Author
+            <button
+              type="button"
+              className="icon-button add"
+              onClick={handleAddAuthor}
+            >
+              <FaPlus /> Add Author
             </button>
           </div>
           <div className="form-group">
-            <label>Title of the Article:</label>
+            <label htmlFor="title">Title of the Article:</label>
             <input
+              id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -172,8 +172,9 @@ const AddPublication = () => {
             />
           </div>
           <div className="form-group">
-            <label>Title of the Journal:</label>
+            <label htmlFor="journalTitle">Title of the Journal:</label>
             <input
+              id="journalTitle"
               type="text"
               value={journalTitle}
               onChange={(e) => setJournalTitle(e.target.value)}
@@ -181,17 +182,20 @@ const AddPublication = () => {
             />
           </div>
           <div className="form-group">
-            <label>Date of Publication:</label>
+            <label htmlFor="publicationDate">Date of Publication:</label>
             <input
+              id="publicationDate"
               type="date"
+              max={new Date().toISOString().split("T")[0]}
               value={publicationDate}
               onChange={(e) => setPublicationDate(e.target.value)}
               required
             />
           </div>
           <div className="form-group">
-            <label>Citation Count:</label>
+            <label htmlFor="citationCount">Citation Count:</label>
             <input
+              id="citationCount"
               type="text"
               value={citationCount}
               onChange={(e) => setCitationCount(e.target.value)}
@@ -199,8 +203,9 @@ const AddPublication = () => {
             />
           </div>
           <div className="form-group">
-            <label>Page Numbers:</label>
+            <label htmlFor="pageNumbers">Page Numbers:</label>
             <input
+              id="pageNumbers"
               type="text"
               value={pageNumbers}
               onChange={(e) => setPageNumbers(e.target.value)}
@@ -220,20 +225,26 @@ const AddPublication = () => {
                 {keywords.length > 1 && (
                   <button
                     type="button"
+                    className="icon-button remove"
                     onClick={() => handleRemoveKeyword(index)}
                   >
-                    Remove
+                    <FaMinus />
                   </button>
                 )}
               </div>
             ))}
-            <button type="button" onClick={handleAddKeyword}>
-              Add Keyword
+            <button
+              type="button"
+              className="icon-button add"
+              onClick={handleAddKeyword}
+            >
+              <FaPlus /> Add Keyword
             </button>
           </div>
           <div className="form-group">
-            <label>Link of the Paper:</label>
+            <label htmlFor="paperLink">Link of the Paper:</label>
             <input
+              id="paperLink"
               type="url"
               value={paperLink}
               onChange={(e) => setPaperLink(e.target.value)}
@@ -241,8 +252,9 @@ const AddPublication = () => {
             />
           </div>
           <div className="form-group">
-            <label>Description:</label>
+            <label htmlFor="description">Description:</label>
             <textarea
+              id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
@@ -251,7 +263,7 @@ const AddPublication = () => {
           {message && <div className="message">{message}</div>}
           <div className="form-group">
             <button type="submit" className="submit-btn">
-              {isLoading ? "Adding publication..." : "Add"}
+              {isLoading ? "Adding publication..." : "Add Publication"}
             </button>
           </div>
         </form>

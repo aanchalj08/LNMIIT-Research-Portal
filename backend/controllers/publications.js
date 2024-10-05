@@ -1,12 +1,9 @@
 const axios = require("axios");
-const Teacher = require("../models/Teacher");
-const Publication = require("../models/Publication");
-const natural = require("natural");
-const tokenizer = new natural.WordTokenizer();
-const TfIdf = natural.TfIdf;
-const stemmer = natural.PorterStemmer;
+const { Teacher } = require("../models/Teacher");
+const { Publication } = require("../models/Publication");
 const SCOPUS_API_KEY = process.env.SCOPUS_API_KEY;
-
+const { Op } = require("sequelize");
+const { sequelize } = require("../db/connect");
 
 exports.verifyPublication = async (req, res) => {
   const { issnNumber } = req.body;
@@ -41,11 +38,8 @@ exports.verifyPublication = async (req, res) => {
 exports.addPublication = async (req, res) => {
   try {
     const userId = req.user.id;
-    const publicationData = { ...req.body, user: userId };
-
-    const publication = new Publication(publicationData);
-    await publication.save();
-
+    const publicationData = { ...req.body, user_id: userId };
+    const publication = await Publication.create(publicationData);
     res
       .status(201)
       .json({ message: "Publication added successfully", publication });
@@ -62,25 +56,24 @@ exports.getUserPublications = async (req, res) => {
     const userId = req.user.id;
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-    const publications = await Publication.find({ user: userId })
-      .select("-__v")
-      .sort({ publicationDate: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const totalPublications = await Publication.countDocuments({
-      user: userId,
+    const { count, rows: publications } = await Publication.findAndCountAll({
+      where: { user_id: userId },
+      order: [["publicationDate", "DESC"]],
+      offset: offset,
+      limit: limit,
+      attributes: { exclude: ["createdAt", "updatedAt"] },
     });
-    const totalPages = Math.ceil(totalPublications / limit);
+
+    const totalPages = Math.ceil(count / limit);
 
     res.status(200).json({
       success: true,
       publications: publications,
       currentPage: page,
       totalPages: totalPages,
-      totalPublications: totalPublications,
+      totalPublications: count,
     });
   } catch (error) {
     res.status(500).json({
@@ -90,18 +83,17 @@ exports.getUserPublications = async (req, res) => {
     });
   }
 };
+
 exports.getPublicationById = async (req, res) => {
   try {
     const publicationId = req.params.id;
-    const publication = await Publication.findById(publicationId);
-
+    const publication = await Publication.findByPk(publicationId);
     if (!publication) {
       return res.status(404).json({
         success: false,
         message: "Publication not found",
       });
     }
-
     res.status(200).json({
       success: true,
       publication: publication,
@@ -120,8 +112,10 @@ exports.deletePublication = async (req, res) => {
     const publicationId = req.params.id;
     const userId = req.user.id;
     const publication = await Publication.findOne({
-      _id: publicationId,
-      user: userId,
+      where: {
+        id: publicationId,
+        user_id: userId,
+      },
     });
     if (!publication) {
       return res.status(404).json({
@@ -130,7 +124,7 @@ exports.deletePublication = async (req, res) => {
           "Publication not found or you don't have permission to delete it",
       });
     }
-    await Publication.findByIdAndDelete(publicationId);
+    await publication.destroy();
     res.status(200).json({
       success: true,
       message: "Publication deleted successfully",
@@ -147,51 +141,58 @@ exports.deletePublication = async (req, res) => {
 exports.searchPublication = async (req, res) => {
   try {
     const { name, department, domain } = req.query;
-
     if (!name && !department && !domain) {
       return res.status(400).json({
         message: "Name, department, or domain query parameter is required",
       });
     }
 
-    let searchCriteria = {};
-
+    let whereClause = {};
     if (name) {
-      searchCriteria.name = new RegExp(name, "i");
+      whereClause.name = { [Op.like]: `%${name}%` };
     }
-
     if (department) {
-      searchCriteria.department = department;
+      whereClause.department = department;
     }
-
     if (domain) {
-      const domainList = domain.split(",");
-      searchCriteria.domains = { $in: domainList };
+      console.log(domain);
+      const domainList = domain.split(",").map((d) => decodeURIComponent(d));
+      whereClause.domains = {
+        [Op.or]: domainList.map((d) =>
+          sequelize.literal(
+            `JSON_CONTAINS(domains, ${sequelize.escape(JSON.stringify(d))})`
+          )
+        ),
+      };
     }
 
-    const users = await Teacher.find(
-      searchCriteria,
-      "name department email domains"
-    );
-    console.log(`Found ${users.length} users matching the criteria`);
+    console.log("Where clause:", JSON.stringify(whereClause, null, 2));
 
+    const users = await Teacher.findAll({
+      where: whereClause,
+      attributes: ["id", "name", "department", "email", "domains"],
+    });
+
+    console.log(`Found ${users.length} users matching the criteria`);
     return res.json({ users });
   } catch (error) {
     console.error("Error searching users:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 exports.getPublications = async (req, res) => {
   try {
     const { userId } = req.params;
     console.log(`Fetching publications for user ID: ${userId}`);
 
-    const publications = await Publication.find({ user: userId })
-      .select("title publicationDate")
-      .sort({ publicationDate: -1 });
+    const publications = await Publication.findAll({
+      where: { user_id: userId },
+      attributes: ["title", "publicationDate", "id"],
+      order: [["publicationDate", "DESC"]],
+    });
 
     console.log(`Found ${publications.length} publications`);
-
     res.json({ publications });
   } catch (error) {
     console.error("Error fetching user publications:", error);
@@ -201,7 +202,9 @@ exports.getPublications = async (req, res) => {
 
 exports.getUserData = async (req, res) => {
   try {
-    const teacher = await Teacher.findById(req.user.id).select("-password");
+    const teacher = await Teacher.findByPk(req.user.id, {
+      attributes: { exclude: ["password"] },
+    });
     if (!teacher) {
       return res.status(404).json({ msg: "Teacher not found" });
     }
@@ -216,30 +219,29 @@ exports.getUserData = async (req, res) => {
 
 exports.updateUserData = async (req, res) => {
   const { name, email, department, authorID, domains } = req.body;
-
   const teacherFields = {};
   if (name) teacherFields.name = name;
   if (email) teacherFields.email = email;
   if (department) teacherFields.department = department;
   if (authorID) teacherFields.authorID = authorID;
-  if (domains) teacherFields.domains = domains;
+  if (domains && Array.isArray(domains)) teacherFields.domains = domains;
 
   try {
-    let teacher = await Teacher.findById(req.user.id);
-
-    if (!teacher) {
+    const [updatedRowsCount] = await Teacher.update(teacherFields, {
+      where: { id: req.user.id },
+    });
+    if (updatedRowsCount === 0) {
       return res.status(404).json({ msg: "Teacher not found" });
     }
-
-    teacher = await Teacher.findByIdAndUpdate(
-      req.user.id,
-      { $set: teacherFields },
-      { new: true }
-    );
-
-    res.json({ teacher, message: "Profile updated successfully" });
+    const updatedTeacher = await Teacher.findByPk(req.user.id, {
+      attributes: { exclude: ["password"] },
+    });
+    res.json({
+      teacher: updatedTeacher,
+      message: "Profile updated successfully",
+    });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    console.error("Error updating user data:", err);
+    res.status(500).json({ message: "Server Error", error: err.message });
   }
 };

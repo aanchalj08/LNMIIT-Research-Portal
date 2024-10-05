@@ -12,11 +12,21 @@ const UserJournals = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userRole, setUserRole] = useState("");
+  const [searchType, setSearchType] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
   const baseUrl = import.meta.env.VITE_BASE_URL;
   const journalsPerPage = 20;
 
   useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const role = queryParams.get("userType");
+    setUserRole(role || "");
+
+    const searchType = queryParams.get("searchType");
+    setSearchType(searchType || "");
+
     const fetchUserPublications = async () => {
       setLoading(true);
       try {
@@ -30,9 +40,10 @@ const UserJournals = () => {
           }
         );
         setUserPublications(response.data.publications);
-        setSelectedUser(
-          location.state.searchResults.find((user) => user._id === userId)
+        const sUser = location.state?.searchResults?.find(
+          (user) => String(user.id) === String(userId)
         );
+        setSelectedUser(sUser);
       } catch (error) {
         console.error("Error fetching user publications:", error);
         setError(
@@ -42,19 +53,18 @@ const UserJournals = () => {
       setLoading(false);
     };
     fetchUserPublications();
-  }, [userId, location.state.searchResults, baseUrl]);
+  }, [userId, location.state.searchResults, baseUrl, location]);
 
   const handleBackClick = () => {
-    navigate("/search", {
+    navigate(`/search?userType=${userRole}&searchType=${searchType}`, {
       state: { searchResults: location.state.searchResults },
     });
   };
 
   const handleViewDetails = (publicationId) => {
-    navigate(`/publication/${publicationId}`);
+    navigate(`/publication/${publicationId}?userType=${userRole}`);
   };
 
-  // Get current journals
   const indexOfLastJournal = currentPage * journalsPerPage;
   const indexOfFirstJournal = indexOfLastJournal - journalsPerPage;
   const currentJournals = userPublications.slice(
@@ -62,7 +72,6 @@ const UserJournals = () => {
     indexOfLastJournal
   );
 
-  // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
@@ -84,7 +93,7 @@ const UserJournals = () => {
                   <>
                     <ul className="journal-list">
                       {currentJournals.map((publication, index) => (
-                        <li key={publication._id} className="journal-item">
+                        <li key={publication.id} className="journal-item">
                           <div className="journal-number">
                             {indexOfFirstJournal + index + 1}.
                           </div>
@@ -100,7 +109,7 @@ const UserJournals = () => {
                             </p>
                             <button
                               className="view-details-button"
-                              onClick={() => handleViewDetails(publication._id)}
+                              onClick={() => handleViewDetails(publication.id)}
                             >
                               View Details
                             </button>

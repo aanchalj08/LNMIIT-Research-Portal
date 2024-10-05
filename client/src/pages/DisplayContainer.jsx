@@ -14,6 +14,9 @@ const DisplayContainer = ({
   link,
   description,
 }) => {
+  const parsedAuthors = JSON.parse(authors);
+  const parsedKeywords = JSON.parse(keywords);
+
   return (
     <div>
       <Navbar></Navbar>
@@ -41,7 +44,7 @@ const DisplayContainer = ({
           <div className="authors-section">
             <h2>Authors</h2>
             <ul>
-              {authors.map((author, index) => (
+              {parsedAuthors.map((author, index) => (
                 <li key={index}>{author}</li>
               ))}
             </ul>
@@ -49,7 +52,7 @@ const DisplayContainer = ({
           <div className="keywords-section">
             <h2>Keywords</h2>
             <ul className="keywords-list">
-              {keywords.map((keyword, index) => (
+              {parsedKeywords.map((keyword, index) => (
                 <li key={index} className="keyword-item">
                   {keyword}
                 </li>
@@ -67,7 +70,7 @@ const DisplayContainer = ({
               rel="noopener noreferrer"
               className="paper-link"
             >
-              View on Scopus
+              Go to link
             </a>
           </div>
         </div>

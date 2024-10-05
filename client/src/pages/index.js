@@ -16,3 +16,5 @@ export { default as Search } from "./Search";
 export { default as UserJournals } from "./UserJournals";
 export { default as Refresh } from "./Refresh";
 export { default as EditProfile } from "./EditProfile";
+export { default as StudentLogin } from "./StudentLogin";
+export { default as StudentRegister } from "./StudentRegister";

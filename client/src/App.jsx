@@ -16,6 +16,8 @@ import {
   UserJournals,
   Refresh,
   EditProfile,
+  StudentLogin,
+  StudentRegister,
 } from "./pages";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -83,6 +85,14 @@ const router = createBrowserRouter([
       {
         path: "edit-profile",
         element: <EditProfile />,
+      },
+      {
+        path: "student/login",
+        element: <StudentLogin />,
+      },
+      {
+        path: "student/register",
+        element: <StudentRegister />,
       },
     ],
   },

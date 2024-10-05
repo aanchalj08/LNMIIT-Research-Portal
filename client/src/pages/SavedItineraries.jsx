@@ -15,12 +15,16 @@ const SavedItineraries = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalPublications, setTotalPublications] = useState(0);
   const [pageLoading, setPageLoading] = useState(false);
+  const [userRole, setUserRole] = useState("");
   const baseUrl = import.meta.env.VITE_BASE_URL;
   const publicationsPerPage = 20;
 
   useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const role = queryParams.get("userType");
+    setUserRole(role || "");
     fetchPublications(currentPage);
-  }, [currentPage]);
+  }, [currentPage, location]);
 
   const fetchPublications = async (page) => {
     setPageLoading(true);
@@ -113,7 +117,7 @@ const SavedItineraries = () => {
             ) : (
               <ul className="itinerary-list">
                 {publications.map((publication, index) => (
-                  <li key={publication._id} className="itinerary-item">
+                  <li key={publication.id} className="itinerary-item">
                     <div className="itinerary-number">
                       {(currentPage - 1) * publicationsPerPage + index + 1}
                     </div>
@@ -128,13 +132,13 @@ const SavedItineraries = () => {
                     </div>
                     <div className="itinerary-actions">
                       <Link
-                        to={`/publication/${publication._id}`}
+                        to={`/publication/${publication.id}?userType=${userRole}`}
                         className="view-button"
                       >
                         View Details
                       </Link>
                       <button
-                        onClick={() => handleDelete(publication._id)}
+                        onClick={() => handleDelete(publication.id)}
                         className="delete-button"
                       >
                         Delete

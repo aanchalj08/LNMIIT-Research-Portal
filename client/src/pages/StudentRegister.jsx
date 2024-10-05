@@ -7,7 +7,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Select from "react-select";
 
-const Register = () => {
+const StudentRegister = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDomains, setSelectedDomains] = useState([]);
@@ -15,32 +15,6 @@ const Register = () => {
   const [token, setToken] = useState(
     JSON.parse(localStorage.getItem("auth")) || ""
   );
-  const baseUrl = import.meta.env.VITE_BASE_URL;
-
-  const [domainOptions, setDomainOptions] = useState([]);
-
-  useEffect(() => {
-    fetchDomains();
-  }, []);
-
-  const fetchDomains = async () => {
-    try {
-      const response = await axios.get(`${baseUrl}/api/v1/domains`);
-      const domains = response.data;
-      const options = [
-        ...domains.map((domain) => ({
-          value: domain.name,
-          label: domain.name,
-        })),
-        { value: "Others", label: "Others" },
-      ];
-
-      setDomainOptions(options);
-    } catch (error) {
-      console.error("Error fetching domains:", error);
-      toast.error("Failed to fetch domains. Please try again.");
-    }
-  };
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
@@ -49,7 +23,6 @@ const Register = () => {
     let lastname = e.target.lastname.value;
     let email = e.target.email.value;
     let department = e.target.department.value;
-    let authorID = e.target.authorID.value;
     let password = e.target.password.value;
     let confirmPassword = e.target.confirmPassword.value;
     const passwordRegex = /^(?=.*\d)[A-Za-z\d@$!%*?&]{5,}$/;
@@ -60,10 +33,8 @@ const Register = () => {
       lastname.length > 0 &&
       email.length > 0 &&
       department.length > 0 &&
-      authorID.length > 0 &&
       password.length > 0 &&
-      confirmPassword.length > 0 &&
-      selectedDomains.length > 0
+      confirmPassword.length > 0
     ) {
       if (!passwordRegex.test(password)) {
         toast.error(
@@ -77,17 +48,15 @@ const Register = () => {
           username: name + " " + lastname,
           email,
           department,
-          authorID,
           password,
-          domains: selectedDomains.map((domain) => domain.value),
         };
         try {
           const response = await axios.post(
-            `${baseUrl}/api/v1/register`,
+            `${baseUrl}/api/v1/student-register`,
             formData
           );
           toast.success("Registration successful");
-          navigate("/login");
+          navigate("/student/login");
         } catch (err) {
           toast.error(
             err.response?.data?.msg || "Registration failed. Please try again."
@@ -168,27 +137,6 @@ const Register = () => {
               </div>
               <div className="input-group">
                 <input
-                  type="text"
-                  placeholder="Scopus Author ID"
-                  name="authorID"
-                  required={true}
-                />
-                <span className="input-highlight"></span>
-              </div>
-              <Select
-                isMulti
-                name="domains"
-                options={domainOptions}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                placeholder="Select Domains"
-                required={true}
-                onChange={(selectedOptions) =>
-                  setSelectedDomains(selectedOptions)
-                }
-              />
-              <div className="input-group">
-                <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   name="password"
@@ -224,14 +172,12 @@ const Register = () => {
                 className="register-btn"
                 disabled={isLoading}
               >
-                {isLoading
-                  ? "Getting ready, fetching data from Scopus..."
-                  : "Sign Up"}
+                {isLoading ? "Registering..." : "Sign Up"}
               </button>
             </form>
           </div>
           <p className="login-bottom-p">
-            Already have an account? <Link to="/login">Login</Link>
+            Already have an account? <Link to="/student/login">Login</Link>
           </p>
         </div>
       </div>
@@ -239,4 +185,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default StudentRegister;

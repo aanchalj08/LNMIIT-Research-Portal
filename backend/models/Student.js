@@ -2,8 +2,8 @@ const { DataTypes } = require("sequelize");
 const { sequelize } = require("../db/connect");
 const bcrypt = require("bcrypt");
 
-const Teacher = sequelize.define(
-  "Teacher",
+const Student = sequelize.define(
+  "Student",
   {
     name: {
       type: DataTypes.STRING(50),
@@ -31,27 +31,11 @@ const Teacher = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    authorID: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    domains: {
-      type: DataTypes.JSON,
-      defaultValue: [],
-      get() {
-        const rawValue = this.getDataValue("domains");
-        return rawValue || [];
-      },
-      set(value) {
-        this.setDataValue("domains", value);
-      },
-    },
     resetPasswordToken: DataTypes.STRING,
     resetPasswordExpire: DataTypes.DATE,
   },
   {
-    tableName: "Teacher",
+    tableName: "Student",
     hooks: {
       beforeCreate: async (teacher) => {
         const salt = await bcrypt.genSalt(10);
@@ -61,13 +45,13 @@ const Teacher = sequelize.define(
   }
 );
 
-Teacher.prototype.comparePassword = async function (candidatePassword) {
+Student.prototype.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-Teacher.prototype.setPassword = async function (password) {
+Student.prototype.setPassword = async function (password) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(password, salt);
 };
 
-module.exports = { Teacher };
+module.exports = { Student };
