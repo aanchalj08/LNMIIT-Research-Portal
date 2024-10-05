@@ -1,9 +1,6 @@
 const { Sequelize } = require("sequelize");
 const fs = require("fs");
 
-const { Sequelize } = require("sequelize");
-const fs = require("fs");
-
 const useSSL = process.env.NODE_ENV === "production";
 
 const sequelize = new Sequelize(
