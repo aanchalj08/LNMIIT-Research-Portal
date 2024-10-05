@@ -14,7 +14,7 @@ const DisplayItinerary = () => {
     accommodationType,
     itineraryData,
   } = location.state || {};
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  const baseUrl = "https://lnmiit-research-portal.onrender.com";
 
   if (!weatherData || !restaurantData || !accommodationData || !itineraryData) {
     return <div>Loading... or No data available.</div>;
