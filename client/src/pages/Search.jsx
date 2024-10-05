@@ -18,7 +18,7 @@ const Search = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const resultsPerPage = 8;
 
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  const baseUrl = "https://lnmiit-research-portal.onrender.com";
 
   const navigate = useNavigate();
   const location = useLocation();
