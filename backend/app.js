@@ -35,7 +35,7 @@ app.use(
     allowedHeaders: "Content-Type,Authorization",
   })
 );
-
+app.options("*", cors());
 app.post("/api/v1/forgot-password", forgotPassword);
 app.post("/api/v1/reset-password/:resetToken", resetPassword);
 app.post("/api/v1/verify-publication", verifyPublication);
