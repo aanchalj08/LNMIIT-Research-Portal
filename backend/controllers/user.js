@@ -150,19 +150,30 @@ const register = async (req, res) => {
     );
 
     const welcomeMessage = `
-    Dear Dr. ${username},
-    Welcome to the LNMIIT Research Portal!
-    Thank you for registering with us. Your account is now active, and you can start exploring the platform.
-    We're excited to have you on board and look forward to seeing your contributions to the LNMIIT research community!
-    Best regards,
-    The LNMIIT Research Portal Team
-        `;
+   Dear Dr. ${username},
+  Welcome to the LNMIIT Research Portal!
+  Thank you for registering with us. Your account is now active, and you can start exploring the platform.
+  Best regards,
+  The LNMIIT Research Portal Team
+`;
+
+    const welcomeHTML = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+    <p>Dear Dr. <strong>${username}</strong>,</p>
+    <p>Welcome to the <strong>LNMIIT Research Portal</strong>!</p>
+    <p>Thank you for registering with us. Your account is now active, and you can start exploring the platform.</p>
+    <p>We're excited to have you on board and look forward to seeing your contributions to the LNMIIT research community!</p>
+    <p>Best regards,</p>
+    <p><strong>The LNMIIT Research Portal Team</strong></p>
+  </div>
+`;
 
     try {
       await sendEmail({
         email: email,
         subject: "Welcome to LNMIIT Research Portal",
         message: welcomeMessage,
+        html: welcomeHTML,  
       });
       console.log("Welcome email sent successfully");
     } catch (emailError) {
