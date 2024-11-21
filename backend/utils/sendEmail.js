@@ -15,10 +15,16 @@ const sendEmail = async (options) => {
     from: `LNMIIT Research Portal <21ucc126@lnmiit.ac.in>`,
     to: options.email,
     subject: options.subject,
-    text: options.message,
+    text: options.message, 
+    html: options.html,  
   };
 
-  const info = await transporter.sendMail(message);
+  try {
+    const info = await transporter.sendMail(message);
+    console.log(`Email sent: ${info.messageId}`);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
 };
 
 module.exports = sendEmail;
